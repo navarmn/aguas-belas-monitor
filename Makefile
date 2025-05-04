@@ -1,3 +1,6 @@
+# Use bash for shell commands
+SHELL := /bin/bash
+
 # Service configurations
 SERVICES := mosquitto # Add more services here as they are created
 
@@ -6,7 +9,7 @@ REGISTRY ?= aguasbelas
 
 # Helper functions
 define get_version
-$(shell sed 's/[[:space:]]*$$//' $(1)/VERSION 2>/dev/null || echo "unknown")
+$(shell head -n1 $(1)/VERSION 2>/dev/null | tr -d ' \t\n\r%' || echo "unknown")
 endef
 
 define get_image_name
@@ -86,7 +89,8 @@ help:
 	@echo ""
 	@echo "Available services:"
 	@for service in $(SERVICES); do \
-		echo "  - $$service (version: $(call get_version,$$service))"; \
+		version=$$(head -n1 $$service/VERSION 2>/dev/null | tr -d ' \t\n\r%' || echo "unknown"); \
+		echo "  - $$service (version: $$version)"; \
 	done
 	@echo ""
 	@echo "To change a service version, edit the VERSION file in the service directory" 

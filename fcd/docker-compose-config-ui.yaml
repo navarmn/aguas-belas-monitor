@@ -1,0 +1,13 @@
+services:
+  filter-config-ui:
+    image: us-west1-docker.pkg.dev/plainsightai-prod/oci/filter-config-ui:0.4.1
+    environment:
+      CONFIG_UI_PORT: ${CONFIG_UI_PORT:-8001}
+    ports:
+      - ${CONFIG_UI_PORT}:8501
+    volumes:
+      - ./models:/app/models
+      - ./configs:/app/configs
+      
+networks:
+  filter-network:

@@ -1,0 +1,6 @@
+*.mp4
+
+# FCD config
+output/
+cache/
+video-output/

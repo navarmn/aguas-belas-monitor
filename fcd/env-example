@@ -1,0 +1,57 @@
+####################################################################################
+# Filter's Configurations
+####################################################################################
+# Video Streaming
+# If that is a video streaming, set the VIDEO_INPUT
+VIDEO_INPUT=/home/plainsight/filter-color-descriptor/test-color-filter-video.mp4
+# If that is a video streaming, set the RTSP_INPUT
+RTSP_INPUT=rtsp://<user>:<password>@<ip-address>/axis-media/media.amp?videocodec=h264&camera=1!maxsize=1280x720
+# Variables Required for Telemetry
+FILTER_NAME=filter-color-descriptor
+FILTER_TYPE=distance
+RUNTIME_VERSION=us-west1-docker.pkg.dev/plainsightai-prod/oci/filter_runtime:v1.4.23
+
+####################################################################################
+# Filter Color Descriptor Configurations
+####################################################################################
+IMAGE_FCD=us-west1-docker.pkg.dev/plainsightai-prod/oci/filter-color-descriptor:v1.6.7
+FILTER_EXPORT_FREQUENCY=2000
+FILTER_VIDEO_NAME=test-color-filter-video.mp4
+FILTER_EXPORTER_TYPE=file
+FILTER_SERVICE_NAME=fcd
+FILTER_DEBUG=False
+FILTER_CALIBRATION_METHOD=few_shot
+FILTER_ENABLE_CALIBRATION=True
+FILTER_N_CALIBRATION_FRAMES=60
+FILTER_THRESHOLD=90
+FILTER_FEATURE_EXTRACTORS=['color']
+FILTER_CLASSIFIER_TYPE=distance_multiple_states
+FILTER_N_STATES=2
+FILTER_STATES_NAMES=['closed', 'opened']
+## Variables for the cloud upload. If FILTER_CLOUD_SYNC is False, these variables are not necessary
+FILTER_CLOUD_SYNC=False
+FILTER_N_STORED_FRAMES=1
+FILTER_DESTINATION_PATH=gs://filter-color-descriptor/monitoring
+FILTER_GCP_PROJECT_ID=alcibiades-dev
+## Only turn that to True if you want it to run in offline mode for Jester or Al-Haytham
+FILTER_OFFLINE_MODE=False
+FILTER_OUTPUT_COLOR_FRAME_INTERVAL=100
+# Directory to read the input from upstream filters, e.g. VizCal. Not used in offline mode
+FCD_UPSTREAM_DATA=/home/plainsight/filter-color-descriptor/input/video_data.json
+# Set to none to see less log
+FILTER_MQ_LOG=pretty
+CALIBRATION_DATA=/home/plainsight/filter-color-descriptor/cache
+CONFIG_JSON=/home/plainsight/filter-color-descriptor/test-color-filter-config.json
+OUTPUT_JSON_DIR=/home/plainsight/filter-color-descriptor/output
+# Not neesssary if FILTER_CLOUD_SYNC is False
+GCP_CREDENTIALS=/home/plainsight/filter-color-descriptor/scripts/gcp_credentials/alcibiades-dev-aad91fec77b8.json
+####################################################################################
+# Webvis  Configurations
+####################################################################################
+WEBVIS_PORT=8002
+####################################################################################
+# Config UI  Configurations
+####################################################################################
+CONFIG_UI_PORT=8001
+
+
