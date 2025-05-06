@@ -1,0 +1,30 @@
+{
+    "polygons": [
+        {
+            "name": "door",
+            "points": [
+                0.775,
+                0.06888888888888889,
+                0.84375,
+                0.08666666666666667,
+                0.83375,
+                0.3488888888888889,
+                0.765,
+                0.32
+            ],
+            "width": 800,
+            "height": 448,
+            "triggering_anchors": [
+                "CENTER"
+            ],
+            "classes": [
+                "door"
+            ],
+            "color": "#FF0000",
+            "states": [
+                "closed",
+                "open"
+            ]
+        }
+    ]
+}

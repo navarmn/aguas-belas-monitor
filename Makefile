@@ -19,7 +19,7 @@ define get_image_name
 $(REGISTRY)/$(1):$(call get_version,$1)
 endef
 
-.PHONY: build start stop restart logs clean help all-services $(SERVICES) $(addprefix fcd-,$(FCD_MODES))
+.PHONY: build start stop restart logs clean help all-services $(SERVICES) $(addprefix fcd-,$(FCD_MODES)) save-camera-feeds probe-cameras
 
 # Build all services
 build: all-services
@@ -106,6 +106,47 @@ clean-fcd-%:
 	docker rmi $(call get_image_name,fcd) || true
 	docker rmi $(REGISTRY)/fcd || true
 
+# Save cameras feed concurrently
+save-camera-feeds:
+	@echo "Attempting to save camera feeds concurrently..."
+	USER="navar"; \
+	PASS="aguasbelas@2024"; \
+	IPS=$$(sudo nmap -p 554 --open -oG - 192.168.80.0/24 | awk '/554\/open/ {print $$2}'); \
+	for ip in $$IPS; do echo $$ip; done | xargs -P5 -I{} bash -c '\
+		USER=$$0; PASS=$$1; IP=$$2; \
+		echo "Trying $$IP..."; \
+		ffmpeg -t 5 -rtsp_transport tcp \
+		  -i "rtsp://$$IP:554/user=$${USER}_password=$${PASS}_channel=1_stream=1.sdp?real_stream" \
+		  -c:v copy -an -y "test_$$IP.mp4" && \
+		  echo "✅ Success on $$IP" || echo "❌ Failed on $$IP"' \
+		$$USER $$PASS {}
+
+# Probe cameras
+# Probe cameras concurrently
+probe-cameras:
+	@echo "Probing cameras in parallel..."; \
+	# USER="xuty"; \
+	# PASS="en2a5a"; \
+	USER="navar"; \
+	PASS="aguasbelas@2024"; \
+	IPS=("192.168.80.178" "192.168.80.6" "192.168.80.74" "192.168.80.186"); \
+	for ip in $${IPS[@]}; do ( \
+	    echo "Probing $$ip ..."; \
+	    ffmpeg -rtsp_transport tcp -t 3 \
+	      -i "rtsp://$$ip:554/user=$${USER}_password=$${PASS}_channel=1_stream=1.sdp?real_stream" \
+	      -f null - 2>&1 | grep -q "Press" \
+	      && echo "✅ $$ip is reachable" \
+	      || echo "❌ $$ip failed" \
+	) & done; \
+	wait
+
+# List connections
+list-connections:
+	sudo nmap -sn 192.168.80.0/24
+
+list-connections-detailed:
+	sudo nmap -sV -p 554 --open 192.168.80.0/24
+
 # Show help
 help:
 	@echo "Available commands:"
@@ -127,6 +168,8 @@ help:
 	@echo "  make clean           - Clean up all services"
 	@echo "  make clean-SERVICE   - Clean up specific service"
 	@echo "  make clean-fcd-MODE  - Clean up fcd in specific mode"
+	@echo "  make save-camera-feeds - Save a short clip from configured camera IPs"
+	@echo "  make probe-cameras   - Check reachability of configured camera IPs"
 	@echo ""
 	@echo "Available services:"
 	@for service in $(SERVICES); do \

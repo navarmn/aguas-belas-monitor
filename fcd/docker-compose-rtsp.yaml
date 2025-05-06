@@ -5,16 +5,8 @@ services:
     environment:
       LOG_LEVEL: ${LOG_LEVEL:-}
       FILTER_ID: VideoIn
-      FILTER_SOURCES: ${RTSP_INPUT}
+      FILTER_SOURCES: rtsp://192.168.80.74:554/user=navar_password=aguasbelas@2024_channel=1_stream=1.sdp?real_stream
       FILTER_OUTPUTS: tcp://*
-    ports:  # this is here so we can plug into the pipeline from outside if wanted
-      - 5550:5550
-      - 5551:5551
-    volumes:
-      - ./cache:/filter/cache
-      - ./telemetry:/filter/telemetry
-    networks:
-      - filter-network
 
   filter-color-descriptor:
     image: ${IMAGE_FCD:-us-west1-docker.pkg.dev/plainsightai-prod/oci/filter-color-descriptor:v1.6.7}
@@ -34,10 +26,10 @@ services:
       FILTER_OUTPUTS: tcp://*
       FILTER_MQ_LOG: ${FILTER_MQ_LOG:-pretty}
       FILTER_DEBUG: ${FILTER_DEBUG:-False}
-      FILTER_ENABLE_CALIBRATION: ${FILTER_ENABLE_CALIBRATION}
+      FILTER_ENABLE_CALIBRATION: False
       FILTER_CALIBRATION_METHOD: ${FILTER_CALIBRATION_METHOD:-"few_shot"}
       FILTER_N_CALIBRATION_FRAMES: ${FILTER_N_CALIBRATION_FRAMES:-"90"}
-      FILTER_THRESHOLD: ${FILTER_THRESHOLD:-"90"}
+      FILTER_THRESHOLD: 7
       FILTER_FEATURE_EXTRACTORS: ${FILTER_FEATURE_EXTRACTORS:-['color']}
       FILTER_CLASSIFIER_TYPE: ${FILTER_CLASSIFIER_TYPE:-"distance_multiple_states"}
       FILTER_N_STATES: ${FILTER_N_STATES:-"2"}
@@ -45,35 +37,14 @@ services:
       FILTER_DESTINATION_PATH: ${FILTER_DESTINATION_PATH}  
       FILTER_GCP_PROJECT_ID: ${FILTER_GCP_PROJECT_ID}
       FILTER_OFFLINE_MODE: ${FILTER_OFFLINE_MODE}
-      CONFIG_JSON: ${CONFIG_JSON}
       FILTER_OUTPUT_COLOR_FRAME_INTERVAL: ${FILTER_OUTPUT_COLOR_FRAME_INTERVAL:-100}
       FILTER_CLOUD_SYNC: ${FILTER_CLOUD_SYNC:-False}
-    ports:  # this is here so we can plug into the pipeline from outside if wanted
-      - 5560:5550
     volumes:
       - ${CALIBRATION_DATA}:/filter/cache
-      - ${CONFIG_JSON}:/filter/configs/roi_config.json:ro
+      - ./configs/fcd-door-fachada-afternoon-800x448.json:/filter/configs/roi_config.json:ro
       - ${OUTPUT_JSON_DIR}:/filter/output
       - ${FCD_UPSTREAM_DATA}:${FCD_UPSTREAM_DATA}
       - ./output:/filter/output/
-      - ./cache:/filter/cache
-      - ./telemetry:/filter/telemetry
-      - ./output:/tmp/metrics/
-    networks:
-      - filter-network
-
-  video_out:
-    image: us-west1-docker.pkg.dev/plainsightai-prod/oci/video_out:v1.4.23
-    environment:
-      LOG_LEVEL: ${LOG_LEVEL:-}
-      FILTER_SOURCES: tcp://filter-color-descriptor
-      FILTER_OUTPUTS: file:///video-output/video-output.mp4
-    volumes:
-      - ./video-output/:/video-output
-      - ./cache:/filter/cache
-      - ./telemetry:/filter/telemetry
-    networks:
-      - filter-network
 
   webvis:  # visualization on http://localhost:8002
     image: us-west1-docker.pkg.dev/plainsightai-prod/oci/webvis:v1.4.23
@@ -82,12 +53,4 @@ services:
       FILTER_ID: webvis
       FILTER_SOURCES: tcp://filter-color-descriptor
     ports:
-      - ${WEBVIS_PORT}:8000
-    volumes:
-      - ./cache:/filter/cache
-      - ./telemetry:/filter/telemetry
-    networks:
-      - filter-network
-
-networks:
-  filter-network:
+      - 8002:8000
