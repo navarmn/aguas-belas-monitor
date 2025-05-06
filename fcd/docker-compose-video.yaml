@@ -5,7 +5,7 @@ services:
     environment:
       LOG_LEVEL: ${LOG_LEVEL:-}
       FILTER_ID: VideoIn
-      FILTER_SOURCES: file:///video.mp4!sync
+      FILTER_SOURCES: file:///video.mp4!sync!loop
       FILTER_OUTPUTS: tcp://*
     volumes:
       - ./data/test-color-filter-video.mp4:/video.mp4:ro
@@ -39,7 +39,7 @@ services:
       FILTER_DESTINATION_PATH: ${FILTER_DESTINATION_PATH}  
       FILTER_GCP_PROJECT_ID: ${FILTER_GCP_PROJECT_ID}
       FILTER_OFFLINE_MODE: ${FILTER_OFFLINE_MODE}
-      CONFIG_JSON: ./config/test-color-filter-config.json
+      CONFIG_JSON: ./configs/test-color-filter-config.json
       FILTER_OUTPUT_COLOR_FRAME_INTERVAL: ${FILTER_OUTPUT_COLOR_FRAME_INTERVAL:-100}
       FILTER_CLOUD_SYNC: ${FILTER_CLOUD_SYNC:-False}
       # GCP_CREDENTIALS: ${GCP_CREDENTIALS}

@@ -1,4 +1,23 @@
 *.mp4
+*.MP4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
+*.m4v
+*.3gp
+*.3g2
+*.mpeg
+*.mpg
+*.m4a
+*.m4b
+*.m4p
+*.m4v
+*.mp3
+*.mp2
+*.mp1
 
 # FCD config
 output/

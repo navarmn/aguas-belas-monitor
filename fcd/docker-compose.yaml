@@ -5,19 +5,13 @@ services:
     environment:
       LOG_LEVEL: ${LOG_LEVEL:-}
       FILTER_ID: VideoIn
-      FILTER_SOURCES: ${RTSP_INPUT}
+      FILTER_SOURCES: file:///video.mp4!sync!loop
       FILTER_OUTPUTS: tcp://*
-    ports:  # this is here so we can plug into the pipeline from outside if wanted
-      - 5550:5550
-      - 5551:5551
     volumes:
-      - ./cache:/filter/cache
-      - ./telemetry:/filter/telemetry
-    networks:
-      - filter-network
+      - ${VIDEO_INPUT}:/video.mp4:ro
 
   filter-color-descriptor:
-    image: ${IMAGE_FCD:-us-west1-docker.pkg.dev/plainsightai-prod/oci/filter-color-descriptor:v1.6.7}
+    image: ${IMAGE_FCD}
     environment:
       IMAGE_FCD: ${IMAGE_FCD}
       LOG_LEVEL: ${LOG_LEVEL:-}
@@ -48,32 +42,18 @@ services:
       CONFIG_JSON: ${CONFIG_JSON}
       FILTER_OUTPUT_COLOR_FRAME_INTERVAL: ${FILTER_OUTPUT_COLOR_FRAME_INTERVAL:-100}
       FILTER_CLOUD_SYNC: ${FILTER_CLOUD_SYNC:-False}
+      # GCP_CREDENTIALS: ${GCP_CREDENTIALS}
+      OUTPUT_JSON_DIR: ${OUTPUT_JSON_DIR}
     ports:  # this is here so we can plug into the pipeline from outside if wanted
       - 5560:5550
     volumes:
+      # For development, we mount the local directory to the container  
       - ${CALIBRATION_DATA}:/filter/cache
-      - ${CONFIG_JSON}:/filter/configs/roi_config.json:ro
+      - ${CONFIG_JSON}:/filter/configs/roi_config.json
       - ${OUTPUT_JSON_DIR}:/filter/output
       - ${FCD_UPSTREAM_DATA}:${FCD_UPSTREAM_DATA}
       - ./output:/filter/output/
       - ./cache:/filter/cache
-      - ./telemetry:/filter/telemetry
-      - ./output:/tmp/metrics/
-    networks:
-      - filter-network
-
-  video_out:
-    image: us-west1-docker.pkg.dev/plainsightai-prod/oci/video_out:v1.4.23
-    environment:
-      LOG_LEVEL: ${LOG_LEVEL:-}
-      FILTER_SOURCES: tcp://filter-color-descriptor
-      FILTER_OUTPUTS: file:///video-output/video-output.mp4
-    volumes:
-      - ./video-output/:/video-output
-      - ./cache:/filter/cache
-      - ./telemetry:/filter/telemetry
-    networks:
-      - filter-network
 
   webvis:  # visualization on http://localhost:8002
     image: us-west1-docker.pkg.dev/plainsightai-prod/oci/webvis:v1.4.23
@@ -81,13 +61,6 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-}
       FILTER_ID: webvis
       FILTER_SOURCES: tcp://filter-color-descriptor
+      WEBVIS_PORT: 8002
     ports:
-      - ${WEBVIS_PORT}:8000
-    volumes:
-      - ./cache:/filter/cache
-      - ./telemetry:/filter/telemetry
-    networks:
-      - filter-network
-
-networks:
-  filter-network:
+      - 8002:8000
